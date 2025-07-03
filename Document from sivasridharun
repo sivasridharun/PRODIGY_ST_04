@@ -1,35 +1,62 @@
-def celsius_to_fahrenheit(c):
-    return (c * 9/5) + 32
+import time
+from selenium import webdriver
 
-def celsius_to_kelvin(c):
-    return c + 273.15
+# Replace with your BrowserStack credentials
+USERNAME = "YOUR_USERNAME"
+ACCESS_KEY = "YOUR_ACCESS_KEY"
 
-def fahrenheit_to_celsius(f):
-    return (f - 32) * 5/9
+BROWSERSTACK_URL = f"https://{USERNAME}:{ACCESS_KEY}@hub-cloud.browserstack.com/wd/hub"
 
-def fahrenheit_to_kelvin(f):
-    return (f - 32) * 5/9 + 273.15
+# Define multiple browser configurations
+browsers = [
+    {
+        "browser": "Chrome",
+        "browser_version": "125.0",
+        "os": "Windows",
+        "os_version": "11",
+        "name": "Chrome Test"
+    },
+    {
+        "browser": "Firefox",
+        "browser_version": "126.0",
+        "os": "Windows",
+        "os_version": "10",
+        "name": "Firefox Test"
+    },
+    {
+        "browser": "Safari",
+        "browser_version": "17.0",
+        "os": "OS X",
+        "os_version": "Sonoma",
+        "name": "Safari Test"
+    },
+    {
+        "browser": "Edge",
+        "browser_version": "125.0",
+        "os": "Windows",
+        "os_version": "11",
+        "name": "Edge Test"
+    },
+]
 
-def kelvin_to_celsius(k):
-    return k - 273.15
+def run_test(desired_cap):
+    driver = webdriver.Remote(
+        command_executor=BROWSERSTACK_URL,
+        desired_capabilities=desired_cap
+    )
+    try:
+        driver.get("https://practicetestautomation.com/practice-test-login/")
+        driver.find_element("id", "username").send_keys("student")
+        driver.find_element("id", "password").send_keys("Password123")
+        driver.find_element("id", "submit").click()
+        time.sleep(2)
+        assert "Logged In Successfully" in driver.page_source
+        print(f"[PASS] {desired_cap['browser']} login test passed")
+    except Exception as e:
+        print(f"[FAIL] {desired_cap['browser']} login test failed: {e}")
+    finally:
+        driver.quit()
 
-def kelvin_to_fahrenheit(k):
-    return (k - 273.15) * 9/5 + 32
-
-def convert_temperature(value, unit):
-    unit = unit.lower()
-    if unit == 'c':
-        print(f"{value}°C = {celsius_to_fahrenheit(value):.2f}°F, {celsius_to_kelvin(value):.2f}K")
-    elif unit == 'f':
-        print(f"{value}°F = {fahrenheit_to_celsius(value):.2f}°C, {fahrenheit_to_kelvin(value):.2f}K")
-    elif unit == 'k':
-        print(f"{value}K = {kelvin_to_celsius(value):.2f}°C, {kelvin_to_fahrenheit(value):.2f}°F")
-    else:
-        print("Invalid unit.")
-
-try:
-    temp = float(input("Enter temperature: "))
-    unit = input("Unit (C/F/K): ")
-    convert_temperature(temp, unit)
-except ValueError:
-    print("Invalid input.")
+# Run the test on all browsers
+for browser in browsers:
+    run_test(browser)
